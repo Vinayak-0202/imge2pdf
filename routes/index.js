@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const fs = require("fs");
+var { unlink } = require("fs/promises");
 //import the multer library
 //const path = require("path");
 const multer = require("multer");
@@ -96,6 +97,25 @@ router.post("/pdf", function (req, res, next) {
 
   //send the address back to the browser
   res.send(`/pdf/${pdfName}`);
+});
+
+router.get("/new", function (req, res, next) {
+  //delete the files stored in the session
+  let filenames = req.session.imagefiles;
+
+  let deleteFiles = async (paths) => {
+    let deleting = paths.map((file) =>
+      unlink(path.join(__dirname, "..", `/public/images/${file}`))
+    );
+    await Promise.all(deleting);
+  };
+  deleteFiles(filenames);
+
+  //remove the data from the session
+  req.session.imagefiles = undefined;
+
+  //redirect to the root URL
+  res.redirect("/");
 });
 
 module.exports = router;
